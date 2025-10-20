@@ -14,22 +14,22 @@ import os
 from model import llm, embeddings
 
 
-import warnings
 
-# suppress all wanings
-warnings.filterwarnings("ignore")
+# Optional: Avoid timeout issues with Hugging Face downloads
+os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "60"
 
-# Load the Sample FAQ Document and Split into Chunks
+# === Load & Prepare Documents ===
+print("Loading documents...")
 loader = DirectoryLoader(path="./data", recursive=True, glob="*.pdf")
 documents = loader.load()
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 
+print(f"Loaded {len(documents)} document(s). Splitting into chunks...")
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 docs = text_splitter.split_documents(documents)
 
-# Convert Text to Vectors and Index with FAISS
+# === Build Vector Store ===
+print("Building FAISS vector store...")
 vector_store = FAISS.from_documents(docs, embeddings)
-
-# Initialize a retriever for querying the vector store
 retriever = vector_store.as_retriever(search_type="similarity", search_k=3)
 
 # Setup Retrieval-Augmented QA Chain
@@ -38,20 +38,3 @@ retrieval_qa_chain  = RetrievalQA.from_chain_type(
     retriever=retriever,
     return_source_documents=True
 )
-
-# system_prompt = (
-#     "Use the given context to answer the question. "
-#     "If you don't know the answer, say you don't know. "
-#     "Use three sentence maximum and keep the answer concise. "
-#     "Context: {context}"
-# )
-# prompt = ChatPromptTemplate.from_messages(
-#     [
-#         ("system", system_prompt),
-#         ("human", "{input}"),
-#     ]
-# )
-
-
-# question_answer_chain = create_stuff_documents_chain(llm, prompt)
-# chain = create_retrieval_chain(retriever, question_answer_chain)

@@ -7,3 +7,8 @@ Use this token to access the HTTP API:
 
 
 https://docs.n8n.io/advanced-ai/intro-tutorial/#3-add-an-ai-agent-node
+
+
+
+Hello
+what is the Nigeria economy
